@@ -4,12 +4,11 @@
     "description": "Clean architecture based NodeJS API - developed using TDD",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest"
     },
     "lint-staged": {
         "*.js": [
-            "standard --fix",
-            "git add"
+            "standard --fix"
         ]
     },
     "husky": {
@@ -40,6 +39,7 @@
     },
     "homepage": "https://github.com/elmoura/clean-node-api#readme",
     "devDependencies": {
+        "jest": "^26.1.0",
         "husky": "^4.2.5",
         "lint-staged": "^10.2.11",
         "standard": "^14.3.4"
