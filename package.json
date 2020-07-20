@@ -3,6 +3,11 @@
     "version": "1.0.0",
     "description": "Clean architecture based NodeJS API - developed using TDD",
     "main": "index.js",
+    "standard": {
+        "env": [
+            "jest"
+        ]
+    },
     "scripts": {
         "test": "jest"
     },
@@ -43,5 +48,8 @@
         "husky": "^4.2.5",
         "lint-staged": "^10.2.11",
         "standard": "^14.3.4"
+    },
+    "dependencies": {
+        "express": "^4.17.1"
     }
 }
