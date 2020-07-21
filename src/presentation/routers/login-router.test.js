@@ -2,12 +2,22 @@ const LoginRouter = require('./login-router')
 const MissingParamError = require('../helpers/missing-param-error')
 
 const makeSystemUnderTest = () => {
-  return new LoginRouter()
+  class AuthUseCaseSpy {
+    auth (email, password) {
+      this.email = email
+      this.password = password
+    }
+  }
+
+  const authUseCaseSpy = new AuthUseCaseSpy()
+  const loginRouter = new LoginRouter(authUseCaseSpy)
+
+  return { SYSTEM_UNDER_TEST: loginRouter, authUseCaseSpy }
 }
 
 describe('Login Router', () => {
   test('Should return 400 if no e-mail is provided', () => {
-    const SYSTEM_UNDER_TEST = makeSystemUnderTest()
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -22,7 +32,7 @@ describe('Login Router', () => {
   })
 
   test('Should return 400 if no password is provided', () => {
-    const SYSTEM_UNDER_TEST = makeSystemUnderTest()
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -37,7 +47,7 @@ describe('Login Router', () => {
   })
 
   test('Should return 500 if no httpRequest is provided', () => {
-    const SYSTEM_UNDER_TEST = makeSystemUnderTest()
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpResponse = SYSTEM_UNDER_TEST.route()
 
@@ -45,7 +55,7 @@ describe('Login Router', () => {
   })
 
   test('Should return 500 if httpRequest has no body', () => {
-    const SYSTEM_UNDER_TEST = makeSystemUnderTest()
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {}
 
@@ -54,13 +64,19 @@ describe('Login Router', () => {
     expect(httpResponse.statusCode).toBe(500)
   })
 
-  // test('Should call AuthUseCase with correct params', () => {
-  // const SYSTEM_UNDER_TEST = makeSystemUnderTest()
+  test('Should call AuthUseCase with correct params', () => {
+    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
 
-  //   const httpRequest = {}
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      }
+    }
 
-  //   const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    SYSTEM_UNDER_TEST.route(httpRequest)
 
-  //   expect(httpResponse.statusCode).toBe(500)
-  // })
+    expect(authUseCaseSpy.email).toBe(httpRequest.body.email)
+    expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
+  })
 })
