@@ -36,7 +36,7 @@ describe('Login Router', () => {
 
     const httpRequest = {
       body: {
-        email: 'elmoura@mail.com'
+        email: 'any_email@mail.com'
       }
     }
 
@@ -78,5 +78,20 @@ describe('Login Router', () => {
 
     expect(authUseCaseSpy.email).toBe(httpRequest.body.email)
     expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
+  })
+
+  test('Should return 401 when invalid credentials are provided', () => {
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+
+    const httpRequest = {
+      body: {
+        email: 'invalid_email@mail.com',
+        password: 'invalid_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(401)
   })
 })
