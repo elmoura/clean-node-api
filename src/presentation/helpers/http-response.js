@@ -20,8 +20,11 @@ class HttpResponse {
     }
   }
 
-  static ok () {
-    return { statusCode: 200 }
+  static ok (data) {
+    return {
+      body: data,
+      statusCode: 200
+    }
   }
 }
 

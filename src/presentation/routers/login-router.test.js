@@ -137,7 +137,7 @@ describe('Login Router', () => {
   })
 
   test('Should return 200 when valid credentials are provided', () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -149,5 +149,6 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(200)
+    expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken)
   })
 })
