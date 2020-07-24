@@ -7,13 +7,17 @@ const makeSystemUnderTest = () => {
     auth (email, password) {
       this.email = email
       this.password = password
+      return this.accessToken
     }
   }
 
   const authUseCaseSpy = new AuthUseCaseSpy()
-  const loginRouter = new LoginRouter(authUseCaseSpy)
+  console.log(Boolean(authUseCaseSpy.auth))
+  authUseCaseSpy.accessToken = 'valid_token'
 
-  return { SYSTEM_UNDER_TEST: loginRouter, authUseCaseSpy }
+  const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+
+  return { SYSTEM_UNDER_TEST, authUseCaseSpy }
 }
 
 describe('Login Router', () => {
@@ -81,22 +85,6 @@ describe('Login Router', () => {
     expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
   })
 
-  test('Should return 401 when invalid credentials are provided', () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
-
-    const httpRequest = {
-      body: {
-        email: 'invalid_email@mail.com',
-        password: 'invalid_password'
-      }
-    }
-
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
-
-    expect(httpResponse.statusCode).toBe(401)
-    expect(httpResponse.body).toEqual(new UnauthorizedError())
-  })
-
   test('Should return 500 if no AuthUseCase is provided', () => {
     const SYSTEM_UNDER_TEST = new LoginRouter()
 
@@ -129,5 +117,37 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
+  })
+
+  test('Should return 401 when invalid credentials are provided', () => {
+    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
+    authUseCaseSpy.accessToken = null
+
+    const httpRequest = {
+      body: {
+        email: 'invalid_email@mail.com',
+        password: 'invalid_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(401)
+    expect(httpResponse.body).toEqual(new UnauthorizedError())
+  })
+
+  test('Should return 200 when valid credentials are provided', () => {
+    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+
+    const httpRequest = {
+      body: {
+        email: 'valid_email@mail.com',
+        password: 'valid_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(200)
   })
 })

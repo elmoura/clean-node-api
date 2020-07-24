@@ -19,6 +19,10 @@ class HttpResponse {
       statusCode: 401
     }
   }
+
+  static ok () {
+    return { statusCode: 200 }
+  }
 }
 
 module.exports = HttpResponse
