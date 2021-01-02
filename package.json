@@ -1,58 +1,58 @@
 {
-    "name": "clean-node-api",
-    "version": "1.0.0",
-    "description": "Clean architecture based NodeJS API - developed using TDD",
-    "main": "index.js",
-    "standard": {
-        "env": [
-            "jest"
-        ]
-    },
-    "scripts": {
-        "test": "jest --watchAll",
-        "test:staged": "jest"
-    },
-    "lint-staged": {
-        "*.js": [
-            "standard --fix",
-            "npm run test:staged"
-        ]
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/elmoura/clean-node-api.git"
-    },
-    "keywords": [
-        "API",
-        "NodeJS",
-        "Clean",
-        "architecture",
-        "Test",
-        "Driven",
-        "Development",
-        "RESTful",
-        "REST",
-        "HTTP"
-    ],
-    "author": "Gabriel Moura",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/elmoura/clean-node-api/issues"
-    },
-    "homepage": "https://github.com/elmoura/clean-node-api#readme",
-    "devDependencies": {
-        "husky": "^4.2.5",
-        "jest": "^26.1.0",
-        "lint-staged": "^10.2.11",
-        "standard": "^14.3.4",
-        "standart": "^6.1.0"
-    },
-    "dependencies": {
-        "express": "^4.17.1"
+  "name": "clean-node-api",
+  "version": "1.0.0",
+  "description": "Clean architecture based NodeJS API - developed using TDD",
+  "main": "index.js",
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  },
+  "scripts": {
+    "test": "jest --watch --silent --verbose",
+    "test:staged": "jest --passWithNoTests --findRelatedTests --silent"
+  },
+  "lint-staged": {
+    "*.js": [
+      "standard --fix",
+      "npm run test:staged"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elmoura/clean-node-api.git"
+  },
+  "keywords": [
+    "API",
+    "NodeJS",
+    "Clean",
+    "architecture",
+    "Test",
+    "Driven",
+    "Development",
+    "RESTful",
+    "REST",
+    "HTTP"
+  ],
+  "author": "Gabriel Moura",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/elmoura/clean-node-api/issues"
+  },
+  "homepage": "https://github.com/elmoura/clean-node-api#readme",
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "jest": "^26.1.0",
+    "lint-staged": "^10.2.11",
+    "standard": "^14.3.4",
+    "standart": "^6.1.0"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

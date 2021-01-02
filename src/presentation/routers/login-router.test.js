@@ -1,8 +1,35 @@
 const LoginRouter = require('./login-router')
+
 const MissingParamError = require('../helpers/missing-param-error')
+const InvalidParamError = require('../helpers/invalid-param-error')
 const UnauthorizedError = require('../helpers/unauthorized-error')
+const ServerError = require('../helpers/server-error')
 
 const makeSystemUnderTest = () => {
+  const authUseCaseSpy = makeAuthUseCase()
+
+  const emailValidatorSpy = makeEmailValidator()
+
+  const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
+
+  return { SYSTEM_UNDER_TEST, authUseCaseSpy, emailValidatorSpy }
+}
+
+const makeEmailValidator = () => {
+  class EmailValidatorSpy {
+    constructor () {
+      this.isEmailValid = true
+    }
+
+    isValid (email) {
+      return this.isEmailValid
+    }
+  }
+
+  return new EmailValidatorSpy()
+}
+
+const makeAuthUseCase = () => {
   class AuthUseCaseSpy {
     auth (email, password) {
       this.email = email
@@ -12,13 +39,19 @@ const makeSystemUnderTest = () => {
   }
 
   const authUseCaseSpy = new AuthUseCaseSpy()
-  console.log(Boolean(authUseCaseSpy.auth))
   authUseCaseSpy.accessToken = 'valid_token'
-
-  const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
-
-  return { SYSTEM_UNDER_TEST, authUseCaseSpy }
+  return authUseCaseSpy
 }
+
+// const makeAuthUseCaseWithError = () => {
+//   class AuthUseCaseSpy {
+//     auth () {
+//       throw new Error()
+//     }
+//   }
+
+//   return new AuthUseCaseSpy()
+// }
 
 describe('Login Router', () => {
   test('Should return 400 if no e-mail is provided', () => {
@@ -57,6 +90,7 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route()
 
     expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should return 500 if httpRequest has no body', () => {
@@ -67,6 +101,7 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should call AuthUseCase with correct params', () => {
@@ -98,10 +133,11 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should return 500 if no AuthUseCase has no auth method', () => {
-    class AuthUseCaseSpy {}
+    class AuthUseCaseSpy { }
 
     const authUseCaseSpy = new AuthUseCaseSpy()
 
@@ -117,6 +153,7 @@ describe('Login Router', () => {
     const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should return 401 when invalid credentials are provided', () => {
@@ -150,5 +187,47 @@ describe('Login Router', () => {
 
     expect(httpResponse.statusCode).toBe(200)
     expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken)
+  })
+
+  test('Should return 400 if an invalid e-mail is provided', () => {
+    const { SYSTEM_UNDER_TEST, emailValidatorSpy } = makeSystemUnderTest()
+
+    emailValidatorSpy.isEmailValid = false
+
+    const httpRequest = {
+      body: {
+        email: 'invalid_email@mail.com',
+        password: 'any_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.body).toEqual(new InvalidParamError('email'))
+    expect(httpResponse.statusCode).toBe(400)
+  })
+
+  test('Should return 500 if no AuthUseCase is provided', () => {
+    class AuthUseCaseSpy {
+      auth () {
+        throw new Error()
+      }
+    }
+
+    const authUseCaseSpy = new AuthUseCaseSpy()
+    authUseCaseSpy.accessToken = 'valid_token'
+
+    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(500)
   })
 })
