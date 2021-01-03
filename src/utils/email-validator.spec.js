@@ -6,9 +6,13 @@ class EmailValidator {
   }
 }
 
+const makeSystemUnderTest = () => {
+  return new EmailValidator()
+}
+
 describe('Email Validator', () => {
   test('Should return true if validator returns true', () => {
-    const systemUnderTest = new EmailValidator()
+    const systemUnderTest = makeSystemUnderTest()
 
     const isEmailValid = systemUnderTest.isValid('valid_email@email.com')
 
@@ -17,7 +21,7 @@ describe('Email Validator', () => {
 
   test('Should return false if validator returns false', () => {
     validator.isEmailValid = false
-    const systemUnderTest = new EmailValidator()
+    const systemUnderTest = makeSystemUnderTest()
 
     const isEmailValid = systemUnderTest.isValid('invalid_email.com')
 
