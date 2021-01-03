@@ -44,6 +44,16 @@ const makeAuthUseCase = () => {
   return authUseCaseSpy
 }
 
+const makeAuthUseCaseWithError = () => {
+  class AuthUseCaseWithError {
+    auth (email, password) {
+      throw new ServerError()
+    }
+  }
+
+  return new AuthUseCaseWithError()
+}
+
 const makeEmailValidatorWithError = () => {
   class EmailValidator {
     isValid () {
@@ -123,6 +133,23 @@ describe('Login Router', () => {
 
   test('Should return 500 if no AuthUseCase is provided', async () => {
     const systemUnderTest = new LoginRouter()
+
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      }
+    }
+
+    const httpResponse = await systemUnderTest.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(500)
+    expect(httpResponse.body).toEqual(new ServerError())
+  })
+
+  test('Should return 500 if no AuthUseCase throws', async () => {
+    const authUseCaseWithError = makeAuthUseCaseWithError()
+    const systemUnderTest = new LoginRouter(authUseCaseWithError)
 
     const httpRequest = {
       body: {
