@@ -12,9 +12,9 @@ const makeSystemUnderTest = () => {
 
   const emailValidatorSpy = makeEmailValidator()
 
-  const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
+  const systemUnderTest = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
 
-  return { SYSTEM_UNDER_TEST, authUseCaseSpy, emailValidatorSpy }
+  return { systemUnderTest, authUseCaseSpy, emailValidatorSpy }
 }
 
 const makeEmailValidator = () => {
@@ -56,7 +56,7 @@ const makeEmailValidatorWithError = () => {
 
 describe('Login Router', () => {
   test('Should return 400 if no e-mail is provided', async () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+    const { systemUnderTest } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -64,14 +64,14 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new MissingParamError('email'))
   })
 
   test('Should return 400 if no password is provided', async () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+    const { systemUnderTest } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -79,34 +79,34 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new MissingParamError('password'))
   })
 
   test('Should return 500 if no httpRequest is provided', async () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+    const { systemUnderTest } = makeSystemUnderTest()
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route()
+    const httpResponse = await systemUnderTest.route()
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should return 500 if httpRequest has no body', async () => {
-    const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
+    const { systemUnderTest } = makeSystemUnderTest()
 
     const httpRequest = {}
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should call AuthUseCase with correct params', async () => {
-    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
+    const { systemUnderTest, authUseCaseSpy } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -115,14 +115,14 @@ describe('Login Router', () => {
       }
     }
 
-    await SYSTEM_UNDER_TEST.route(httpRequest)
+    await systemUnderTest.route(httpRequest)
 
     expect(authUseCaseSpy.email).toBe(httpRequest.body.email)
     expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
   })
 
   test('Should return 500 if no AuthUseCase is provided', async () => {
-    const SYSTEM_UNDER_TEST = new LoginRouter()
+    const systemUnderTest = new LoginRouter()
 
     const httpRequest = {
       body: {
@@ -131,7 +131,7 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
@@ -142,7 +142,7 @@ describe('Login Router', () => {
 
     const authUseCaseSpy = new AuthUseCaseSpy()
 
-    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+    const systemUnderTest = new LoginRouter(authUseCaseSpy)
 
     const httpRequest = {
       body: {
@@ -151,14 +151,14 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
   test('Should return 401 when invalid credentials are provided', async () => {
-    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
+    const { systemUnderTest, authUseCaseSpy } = makeSystemUnderTest()
     authUseCaseSpy.accessToken = null
 
     const httpRequest = {
@@ -168,14 +168,14 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(401)
     expect(httpResponse.body).toEqual(new UnauthorizedError())
   })
 
   test('Should return 200 when valid credentials are provided', async () => {
-    const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
+    const { systemUnderTest, authUseCaseSpy } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -184,14 +184,14 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(200)
     expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken)
   })
 
   test('Should return 400 if an invalid e-mail is provided', async () => {
-    const { SYSTEM_UNDER_TEST, emailValidatorSpy } = makeSystemUnderTest()
+    const { systemUnderTest, emailValidatorSpy } = makeSystemUnderTest()
 
     emailValidatorSpy.isEmailValid = false
 
@@ -202,7 +202,7 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.body).toEqual(new InvalidParamError('email'))
     expect(httpResponse.statusCode).toBe(400)
@@ -211,7 +211,7 @@ describe('Login Router', () => {
   test('Should return 500 if no EmailValidator is provided', async () => {
     const authUseCaseSpy = makeAuthUseCase()
 
-    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+    const systemUnderTest = new LoginRouter(authUseCaseSpy)
 
     const httpRequest = {
       body: {
@@ -220,14 +220,14 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
   })
 
   test('Should return 500 EmailValidator has no isValid method', async () => {
     const authUseCaseSpy = makeAuthUseCase()
-    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, {})
+    const systemUnderTest = new LoginRouter(authUseCaseSpy, {})
 
     const httpRequest = {
       body: {
@@ -236,7 +236,7 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
   })
@@ -244,7 +244,7 @@ describe('Login Router', () => {
   test('Should return 500 EmailValidator throws', async () => {
     const authUseCaseSpy = makeAuthUseCase()
     const emailValidatorSpy = makeEmailValidatorWithError()
-    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
+    const systemUnderTest = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
 
     const httpRequest = {
       body: {
@@ -253,13 +253,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await systemUnderTest.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
   })
 
   test('Should call EmailValidator with correct e-mail', async () => {
-    const { SYSTEM_UNDER_TEST, emailValidatorSpy } = makeSystemUnderTest()
+    const { systemUnderTest, emailValidatorSpy } = makeSystemUnderTest()
 
     const httpRequest = {
       body: {
@@ -268,7 +268,7 @@ describe('Login Router', () => {
       }
     }
 
-    await SYSTEM_UNDER_TEST.route(httpRequest)
+    await systemUnderTest.route(httpRequest)
 
     expect(emailValidatorSpy.email).toBe(httpRequest.body.email)
   })
