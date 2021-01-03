@@ -17,16 +17,15 @@ const makeSystemUnderTest = () => {
 
 const makeEmailValidator = () => {
   class EmailValidatorSpy {
-    constructor () {
-      this.isEmailValid = true
-    }
-
     isValid (email) {
+      this.email = email
       return this.isEmailValid
     }
   }
 
-  return new EmailValidatorSpy()
+  const emailValidatorSpy = new EmailValidatorSpy()
+  emailValidatorSpy.isEmailValid = true
+  return emailValidatorSpy
 }
 
 const makeAuthUseCase = () => {
@@ -54,7 +53,7 @@ const makeEmailValidatorWithError = () => {
 }
 
 describe('Login Router', () => {
-  test('Should return 400 if no e-mail is provided', () => {
+  test('Should return 400 if no e-mail is provided', async () => {
     const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {
@@ -63,13 +62,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new MissingParamError('email'))
   })
 
-  test('Should return 400 if no password is provided', () => {
+  test('Should return 400 if no password is provided', async () => {
     const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {
@@ -78,33 +77,33 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(400)
     expect(httpResponse.body).toEqual(new MissingParamError('password'))
   })
 
-  test('Should return 500 if no httpRequest is provided', () => {
+  test('Should return 500 if no httpRequest is provided', async () => {
     const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
-    const httpResponse = SYSTEM_UNDER_TEST.route()
+    const httpResponse = await SYSTEM_UNDER_TEST.route()
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
-  test('Should return 500 if httpRequest has no body', () => {
+  test('Should return 500 if httpRequest has no body', async () => {
     const { SYSTEM_UNDER_TEST } = makeSystemUnderTest()
 
     const httpRequest = {}
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
-  test('Should call AuthUseCase with correct params', () => {
+  test('Should call AuthUseCase with correct params', async () => {
     const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
 
     const httpRequest = {
@@ -114,13 +113,13 @@ describe('Login Router', () => {
       }
     }
 
-    SYSTEM_UNDER_TEST.route(httpRequest)
+    await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(authUseCaseSpy.email).toBe(httpRequest.body.email)
     expect(authUseCaseSpy.password).toBe(httpRequest.body.password)
   })
 
-  test('Should return 500 if no AuthUseCase is provided', () => {
+  test('Should return 500 if no AuthUseCase is provided', async () => {
     const SYSTEM_UNDER_TEST = new LoginRouter()
 
     const httpRequest = {
@@ -130,13 +129,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
-  test('Should return 500 if no AuthUseCase has no auth method', () => {
+  test('Should return 500 if no AuthUseCase has no auth method', async () => {
     class AuthUseCaseSpy { }
 
     const authUseCaseSpy = new AuthUseCaseSpy()
@@ -150,13 +149,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
     expect(httpResponse.body).toEqual(new ServerError())
   })
 
-  test('Should return 401 when invalid credentials are provided', () => {
+  test('Should return 401 when invalid credentials are provided', async () => {
     const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
     authUseCaseSpy.accessToken = null
 
@@ -167,13 +166,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(401)
     expect(httpResponse.body).toEqual(new UnauthorizedError())
   })
 
-  test('Should return 200 when valid credentials are provided', () => {
+  test('Should return 200 when valid credentials are provided', async () => {
     const { SYSTEM_UNDER_TEST, authUseCaseSpy } = makeSystemUnderTest()
 
     const httpRequest = {
@@ -183,13 +182,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(200)
     expect(httpResponse.body.accessToken).toEqual(authUseCaseSpy.accessToken)
   })
 
-  test('Should return 400 if an invalid e-mail is provided', () => {
+  test('Should return 400 if an invalid e-mail is provided', async () => {
     const { SYSTEM_UNDER_TEST, emailValidatorSpy } = makeSystemUnderTest()
 
     emailValidatorSpy.isEmailValid = false
@@ -201,13 +200,13 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.body).toEqual(new InvalidParamError('email'))
     expect(httpResponse.statusCode).toBe(400)
   })
 
-  test('Should return 500 if no EmailValidator is provided', () => {
+  test('Should return 500 if no EmailValidator is provided', async () => {
     const authUseCaseSpy = makeAuthUseCase()
 
     const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
@@ -219,12 +218,12 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
   })
 
-  test('Should return 500 EmailValidator has no isValid method', () => {
+  test('Should return 500 EmailValidator has no isValid method', async () => {
     const authUseCaseSpy = makeAuthUseCase()
     const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, {})
 
@@ -235,12 +234,12 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
   })
 
-  test('Should return 500 EmailValidator throws', () => {
+  test('Should return 500 EmailValidator throws', async () => {
     const authUseCaseSpy = makeAuthUseCase()
     const emailValidatorSpy = makeEmailValidatorWithError()
     const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
@@ -252,8 +251,23 @@ describe('Login Router', () => {
       }
     }
 
-    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+    const httpResponse = await SYSTEM_UNDER_TEST.route(httpRequest)
 
     expect(httpResponse.statusCode).toBe(500)
+  })
+
+  test('Should call EmailValidator with correct e-mail', async () => {
+    const { SYSTEM_UNDER_TEST, emailValidatorSpy } = makeSystemUnderTest()
+
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      }
+    }
+
+    await SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(emailValidatorSpy.email).toBe(httpRequest.body.email)
   })
 })
