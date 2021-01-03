@@ -207,17 +207,27 @@ describe('Login Router', () => {
     expect(httpResponse.statusCode).toBe(400)
   })
 
-  test('Should return 500 if no AuthUseCase is provided', () => {
-    class AuthUseCaseSpy {
-      auth () {
-        throw new Error()
+  test('Should return 500 if no EmailValidator is provided', () => {
+    const authUseCaseSpy = makeAuthUseCase()
+
+    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
       }
     }
 
-    const authUseCaseSpy = new AuthUseCaseSpy()
-    authUseCaseSpy.accessToken = 'valid_token'
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
 
-    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy)
+    expect(httpResponse.statusCode).toBe(500)
+  })
+
+  test('Should return 500 EmailValidator has no isValid method', () => {
+    const authUseCaseSpy = makeAuthUseCase()
+
+    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, {})
 
     const httpRequest = {
       body: {
