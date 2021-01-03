@@ -43,15 +43,15 @@ const makeAuthUseCase = () => {
   return authUseCaseSpy
 }
 
-// const makeAuthUseCaseWithError = () => {
-//   class AuthUseCaseSpy {
-//     auth () {
-//       throw new Error()
-//     }
-//   }
+const makeEmailValidatorWithError = () => {
+  class EmailValidator {
+    isValid () {
+      throw new Error()
+    }
+  }
 
-//   return new AuthUseCaseSpy()
-// }
+  return new EmailValidator()
+}
 
 describe('Login Router', () => {
   test('Should return 400 if no e-mail is provided', () => {
@@ -226,8 +226,24 @@ describe('Login Router', () => {
 
   test('Should return 500 EmailValidator has no isValid method', () => {
     const authUseCaseSpy = makeAuthUseCase()
-
     const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, {})
+
+    const httpRequest = {
+      body: {
+        email: 'any_email@mail.com',
+        password: 'any_password'
+      }
+    }
+
+    const httpResponse = SYSTEM_UNDER_TEST.route(httpRequest)
+
+    expect(httpResponse.statusCode).toBe(500)
+  })
+
+  test('Should return 500 EmailValidator throws', () => {
+    const authUseCaseSpy = makeAuthUseCase()
+    const emailValidatorSpy = makeEmailValidatorWithError()
+    const SYSTEM_UNDER_TEST = new LoginRouter(authUseCaseSpy, emailValidatorSpy)
 
     const httpRequest = {
       body: {
