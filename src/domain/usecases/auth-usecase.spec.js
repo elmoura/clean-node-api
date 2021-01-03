@@ -14,6 +14,6 @@ describe('Auth UseCase', () => {
 
     const accessTokenPromise = systemUnderTest.auth()
 
-    expect(accessTokenPromise).rejects.toThrow()
+    expect(accessTokenPromise).rejects.toThrow(new MissingParamError('email'))
   })
 })
