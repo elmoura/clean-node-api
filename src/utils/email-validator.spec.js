@@ -1,10 +1,6 @@
 const validator = require('validator')
 
-class EmailValidator {
-  isValid (email) {
-    return validator.isEmail(email)
-  }
-}
+const EmailValidator = require('./email-validator')
 
 const makeSystemUnderTest = () => {
   return new EmailValidator()
@@ -26,5 +22,14 @@ describe('Email Validator', () => {
     const isEmailValid = systemUnderTest.isValid('invalid_email.com')
 
     expect(isEmailValid).toBe(false)
+  })
+
+  test('Should call validator with correct email', () => {
+    const systemUnderTest = makeSystemUnderTest()
+
+    const testEmail = 'any_email@email.com'
+    systemUnderTest.isValid(testEmail)
+
+    expect(validator.email).toBe(testEmail)
   })
 })
