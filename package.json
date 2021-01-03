@@ -9,8 +9,9 @@
     ]
   },
   "scripts": {
-    "test": "jest --watch --silent --verbose",
-    "test:staged": "jest --passWithNoTests --findRelatedTests --silent"
+    "test": "jest --watch --silent",
+    "test:staged": "jest --passWithNoTests --findRelatedTests --silent --noStackTrace",
+    "test:ci": "jest --coverage"
   },
   "repository": {
     "type": "git",
