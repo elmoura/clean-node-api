@@ -9,11 +9,11 @@
     ]
   },
   "scripts": {
-    "test": "jest --silent --colors --passWithNoTests --noStackTrace",
+    "test": "jest --silent --colors --passWithNoTests",
     "test:unit": "npm test -- --watch -c jest-unit-config.js",
     "test:integration": "npm test --watch -c jest-integration-config.js",
     "test:staged": "npm test -- --findRelatedTests",
-    "test:ci": "npm test -- --coverage"
+    "test:ci": "npm test -- --coverage --noStackTrace"
   },
   "repository": {
     "type": "git",
