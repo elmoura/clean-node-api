@@ -22,7 +22,11 @@ class AuthUseCase {
       throw new InvalidParamError('loadUserByEmailRepository')
     }
 
-    await this.loadUserByEmailRepository.load(email)
+    const user = await this.loadUserByEmailRepository.load(email)
+
+    if (!user) {
+      return null
+    }
   }
 }
 
@@ -67,13 +71,25 @@ describe('Auth UseCase', () => {
 
   test('Should throw if no LoadUserByEmailRepository is provided', async () => {
     const systemUnderTest = new AuthUseCase()
+
     const accessTokenPromise = systemUnderTest.auth('any_email@mail.com', 'any_password')
+
     expect(accessTokenPromise).rejects.toThrow(new MissingParamError('loadUserByEmailRepository'))
   })
 
   test('Should throw if no LoadUserByEmailRepository has no load method', async () => {
     const systemUnderTest = new AuthUseCase({})
+
     const accessTokenPromise = systemUnderTest.auth('any_email@mail.com', 'any_password')
+
     expect(accessTokenPromise).rejects.toThrow(new InvalidParamError('loadUserByEmailRepository'))
+  })
+
+  test('Should return null if no user is found', async () => {
+    const { systemUnderTest } = makeSystemUnderTest()
+
+    const accessTokenPromise = await systemUnderTest.auth('invalid_email@mail.com', 'any_password')
+
+    expect(accessTokenPromise).toBeNull()
   })
 })
