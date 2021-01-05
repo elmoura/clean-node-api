@@ -18,9 +18,22 @@ class AuthUseCase {
   }
 }
 
+const makeSystemUnderTest = () => {
+  class LoadUserByEmailRepositorySpy {
+    async load (email) {
+      this.email = email
+    }
+  }
+
+  const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy()
+  const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy)
+
+  return { systemUnderTest, loadUserByEmailRepositorySpy }
+}
+
 describe('Auth UseCase', () => {
   test('Should throw if no e-mail is provided', async () => {
-    const systemUnderTest = new AuthUseCase()
+    const { systemUnderTest } = makeSystemUnderTest()
 
     const accessTokenPromise = systemUnderTest.auth()
 
@@ -28,7 +41,7 @@ describe('Auth UseCase', () => {
   })
 
   test('Should throw if no password is provided', async () => {
-    const systemUnderTest = new AuthUseCase()
+    const { systemUnderTest } = makeSystemUnderTest()
 
     const accessTokenPromise = systemUnderTest.auth('any_email@mail.com')
 
@@ -36,14 +49,7 @@ describe('Auth UseCase', () => {
   })
 
   test('Should call LoadUserByEmailRepository with correct email', async () => {
-    class LoadUserByEmailRepositorySpy {
-      async load (email) {
-        this.email = email
-      }
-    }
-
-    const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy()
-    const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy)
+    const { systemUnderTest, loadUserByEmailRepositorySpy } = makeSystemUnderTest()
 
     const testEmail = 'any_email@mail.com'
     await systemUnderTest.auth(testEmail, 'any_password')
