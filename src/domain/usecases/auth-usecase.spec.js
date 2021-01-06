@@ -1,6 +1,24 @@
 const { MissingParamError } = require('../../utils/errors')
 const AuthUseCase = require('./auth-usecase')
 
+const makeLoadUserByEmailRepository = () => {
+  class LoadUserByEmailRepositorySpy {
+    async load (email) {
+      this.email = email
+      return this.user
+    }
+  }
+
+  const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy()
+
+  loadUserByEmailRepositorySpy.user = {
+    id: 'any_id',
+    password: 'hashed_password'
+  }
+
+  return loadUserByEmailRepositorySpy
+}
+
 const makeEncrypter = () => {
   class EncrypterSpy {
     async compare (password, hashedPassword) {
@@ -17,30 +35,33 @@ const makeEncrypter = () => {
   return encrypterSpy
 }
 
-const makeLoadUserByEmailRepository = () => {
-  class LoadUserByEmailRepositorySpy {
-    async load (email) {
-      this.email = email
-      return this.user
+const makeTokenGenerator = () => {
+  class TokenGeneratorSpy {
+    async generate (userId) {
+      this.userId = userId
+      return this.accessToken
     }
   }
 
-  const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy()
+  const tokenGeneratorSpy = new TokenGeneratorSpy()
+  tokenGeneratorSpy.accessToken = 'any_token'
 
-  loadUserByEmailRepositorySpy.user = {
-    password: 'hashed_password'
-  }
-
-  return loadUserByEmailRepositorySpy
+  return tokenGeneratorSpy
 }
 
 const makeSystemUnderTest = () => {
   const loadUserByEmailRepositorySpy = makeLoadUserByEmailRepository()
+  const tokenGeneratorSpy = makeTokenGenerator()
   const encrypterSpy = makeEncrypter()
 
-  const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy)
+  const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy, tokenGeneratorSpy)
 
-  return { systemUnderTest, loadUserByEmailRepositorySpy, encrypterSpy }
+  return {
+    systemUnderTest,
+    loadUserByEmailRepositorySpy,
+    encrypterSpy,
+    tokenGeneratorSpy
+  }
 }
 
 describe('Auth UseCase', () => {
@@ -110,5 +131,13 @@ describe('Auth UseCase', () => {
 
     expect(encrypterSpy.password).toBe('any_password')
     expect(encrypterSpy.hashedPassword).toBe(loadUserByEmailRepositorySpy.user.password)
+  })
+
+  test('Should call TokenGenerator with correct userId', async () => {
+    const { systemUnderTest, loadUserByEmailRepositorySpy, tokenGeneratorSpy } = makeSystemUnderTest()
+
+    await systemUnderTest.auth('valid_email@mail.com', 'valid_password')
+
+    expect(tokenGeneratorSpy.userId).toBe(loadUserByEmailRepositorySpy.user.id)
   })
 })
