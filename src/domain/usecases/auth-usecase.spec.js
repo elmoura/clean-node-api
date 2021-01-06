@@ -2,6 +2,15 @@ const { MissingParamError } = require('../../utils/errors')
 const AuthUseCase = require('./auth-usecase')
 
 const makeSystemUnderTest = () => {
+  class EncrypterSpy {
+    async compare (password, hashedPassword) {
+      this.password = password
+      this.hashedPassword = hashedPassword
+    }
+  }
+
+  const encrypterSpy = new EncrypterSpy()
+
   class LoadUserByEmailRepositorySpy {
     async load (email) {
       this.email = email
@@ -10,11 +19,14 @@ const makeSystemUnderTest = () => {
   }
 
   const loadUserByEmailRepositorySpy = new LoadUserByEmailRepositorySpy()
-  loadUserByEmailRepositorySpy.user = {}
 
-  const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy)
+  loadUserByEmailRepositorySpy.user = {
+    password: 'hashed_password'
+  }
 
-  return { systemUnderTest, loadUserByEmailRepositorySpy }
+  const systemUnderTest = new AuthUseCase(loadUserByEmailRepositorySpy, encrypterSpy)
+
+  return { systemUnderTest, loadUserByEmailRepositorySpy, encrypterSpy }
 }
 
 describe('Auth UseCase', () => {
@@ -74,5 +86,14 @@ describe('Auth UseCase', () => {
     const accessToken = await systemUnderTest.auth('invalid_email@mail.com', 'any_password')
 
     expect(accessToken).toBeNull()
+  })
+
+  test('Should call Encrypter with correct values', async () => {
+    const { systemUnderTest, loadUserByEmailRepositorySpy, encrypterSpy } = makeSystemUnderTest()
+
+    await systemUnderTest.auth('valid_email@mail.com', 'any_password')
+
+    expect(encrypterSpy.password).toBe('any_password')
+    expect(encrypterSpy.hashedPassword).toBe(loadUserByEmailRepositorySpy.user.password)
   })
 })
