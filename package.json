@@ -44,7 +44,7 @@
     "standard": "^14.3.4"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "validator": "^13.5.2"
   }
 }
